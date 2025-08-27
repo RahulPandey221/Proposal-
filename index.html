@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Do You Love Me?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta property="og:title" content="A tiny question for you 💖" />
+  <meta property="og:description" content="Do you love me?" />
+  <meta name="theme-color" content="#ff69b4" />
+  <style>
+    :root { --bg1:#ffe1ec; --bg2:#fff6f9; --accent:#ff3b7d; --accent2:#ff86a6; --text:#2a2a2a; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: var(--text); background: radial-gradient(circle at 20% 20%, var(--bg2), var(--bg1)); overflow: hidden; }
+    .container { position: relative; height: 100%; width: 100%; display: grid; place-items: center; padding: 24px; user-select: none; }
+    .card { position: relative; width: min(680px, 92vw); border-radius: 28px; background: #fff; padding: 36px 28px 48px; box-shadow: 0 10px 30px rgba(255,59,125,0.25), 0 8px 18px rgba(0,0,0,0.07); text-align: center; }
+    .title { font-size: clamp(28px, 5vw, 42px); font-weight: 700; line-height: 1.1; margin: 0 0 8px; }
+    .subtitle { font-size: clamp(14px, 3.2vw, 16px); opacity: .75; margin: 0 0 24px; }
+    .buttons { position: relative; display: inline-grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
+    button { position: relative; border: 0; outline: 0; font-family: inherit; font-weight: 700; padding: 14px 22px; border-radius: 16px; cursor: pointer; transition: transform .08s ease, box-shadow .2s ease, background .2s ease; font-size: clamp(14px, 3.5vw, 18px); }
+    #yesBtn { background: var(--accent); color: #fff; box-shadow: 0 10px 16px rgba(255,59,125,.35); }
+    #yesBtn:active { transform: translateY(1px) scale(.98); }
+    #noBtn { background: #fff; color: var(--accent); border: 2px solid var(--accent); box-shadow: 0 10px 16px rgba(0,0,0,.06); }
+    #noBtn:active { transform: translateY(-3px); }
+    .playful { display: inline-block; background: linear-gradient(135deg, var(--accent), #ff6fa5); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hearts { position: absolute; inset: -20vh -10vw; pointer-events: none; z-index: 0; overflow: hidden; }
+    .heart { position: absolute; width: 16px; height: 16px; transform: rotate(45deg); background: var(--accent); opacity: .18; animation: floatUp linear both; border-radius: 2px; }
+    .heart::before, .heart::after { content: ""; position: absolute; width: 100%; height: 100%; background: inherit; border-radius: 50%; }
+    .heart::before { top: -50%; }
+    .heart::after { left: -50%; }
+    @keyframes floatUp { to { transform: translateY(-120vh) rotate(45deg); opacity: 0; } }
+    .footer { margin-top: 20px; font-size: 12px; opacity: .5; }
+    .hidden { display: none; }
+    .center { display: grid; place-items: center; }
+    .msg { font-size: clamp(22px, 5vw, 36px); font-weight: 700; line-height: 1.15; }
+    .submsg { margin-top: 10px; font-size: clamp(14px, 3.2vw, 18px); opacity: .8; }
+    .burst { position: fixed; inset: 0; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <div class="hearts" id="bgHearts"></div>
+  <div class="container">
+    <div class="card" id="card">
+      <h1 class="title">Do you love me? <span class="playful">💘</span></h1>
+      <p class="subtitle">Answer honestly please 😇</p>
+      <div class="buttons" id="btnWrap">
+        <button id="yesBtn">Yes</button>
+        <button id="noBtn">No</button>
+      </div>
+      <div class="footer">Made by Rahul Pandey❤️</div>
+    </div>
+  </div>
+  <canvas class="burst hidden" id="burst"></canvas>
+  <script>
+    const noBtn = document.getElementById('noBtn');
+    const yesBtn = document.getElementById('yesBtn');
+    const wrap = document.getElementById('btnWrap');
+    const card = document.getElementById('card');
+    const bgHearts = document.getElementById('bgHearts');
+    const burst = document.getElementById('burst');
+
+    let dodgeCount = 0;
+    let speedBoost = 0;
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+
+    function placeNoRandom() {
+      const rect = card.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+      const padding = 10;
+      const maxX = rect.width - btnRect.width - padding;
+      const maxY = rect.height - btnRect.height - padding - 40;
+      const x = Math.max(padding, Math.min(maxX, rand(0, maxX)));
+      const y = Math.max(padding, Math.min(maxY, rand(0, maxY)));
+      noBtn.style.position = 'absolute';
+      noBtn.style.left = x + 'px';
+      noBtn.style.top = y + 'px';
+    }
+
+    function tryDodge(e) {
+      dodgeCount++;
+      speedBoost = Math.min(1, dodgeCount / 8);
+      noBtn.style.transition = `transform ${0.1 - speedBoost*0.08}s ease, left ${0.1 - speedBoost*0.08}s ease, top ${0.1 - speedBoost*0.08}s ease`;
+      placeNoRandom();
+      yesBtn.style.transform = `scale(${1 + Math.min(0.01 * dodgeCount, 0.3)})`;
+      yesBtn.style.boxShadow = `0 12px 22px rgba(255,59,125,${0.35 + Math.min(0.01*dodgeCount, .2)})`;
+      if (e && e.preventDefault) e.preventDefault();
+    }
+
+    function spawnBgHearts() {
+      const total = 30;
+      for (let i = 0; i < total; i++) {
+        const h = document.createElement('div');
+        h.className = 'heart';
+        h.style.left = rand(-10, 100) + 'vw';
+        const dur = rand(8, 20);
+        h.style.bottom = '-20vh';
+        h.style.animationDuration = dur + 's';
+        h.style.animationDelay = rand(-dur, 0) + 's';
+        h.style.opacity = rand(0.08, 0.22);
+        h.style.transform = `translateY(0) rotate(45deg) scale(${rand(0.8,1.8)})`;
+        bgHearts.appendChild(h);
+      }
+    }
+
+    function confettiBurst() {
+      const ctx = burst.getContext('2d');
+      const particles = [];
+      const W = burst.width = window.innerWidth;
+      const H = burst.height = window.innerHeight;
+      const N = 140;
+      for (let i = 0; i < N; i++) {
+        particles.push({
+          x: W/2, y: H/2, r: rand(2,6), a: rand(0, Math.PI*2),
+          s: rand(2,6), g: rand(0.03, 0.12), life: rand(40, 90),
+          color: `hsl(${rand(330, 360)}, 90%, ${rand(45, 65)}%)`
+        });
+      }
+      burst.classList.remove('hidden');
+      let frame = 0;
+      function step() {
+        ctx.clearRect(0,0,W,H);
+        particles.forEach(p => {
+          p.x += Math.cos(p.a) * p.s;
+          p.y += Math.sin(p.a) * p.s + p.g*frame;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+        });
+        frame++;
+        if (frame < 120) requestAnimationFrame(step); else burst.classList.add('hidden');
+      }
+      step();
+    }
+
+    function showYesMessage() {
+      card.innerHTML = `
+        <div class="center">
+          <div class="msg">I know u love me! 💖</div>
+          <div class="submsg">but tm phir q tab se <b>No No</b> pe click krne ka soch rhii thi? 😜</div>
+        </div>
+      `;
+      confettiBurst();
+    }
+
+    noBtn.addEventListener('mouseenter', tryDodge);
+    noBtn.addEventListener('touchstart', tryDodge, {passive:false});
+    noBtn.addEventListener('click', tryDodge);
+
+    yesBtn.addEventListener('click', showYesMessage);
+
+    window.addEventListener('resize', () => { if (noBtn.style.position === 'absolute') placeNoRandom(); });
+    spawnBgHearts();
+  </script>
+</body>
+</html>
